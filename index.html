@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUANTUM CORE — 量子クリッカー</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-ambient" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon">⚛️</span>
+      <div>
+        <h1>QUANTUM CORE</h1>
+        <p class="brand-sub">量子エネルギー採掘クリッカー</p>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="ticket-pill" id="headerTicketBadge" title="無料ルーレット抽選チケット">
+        <span>🎟️ チケット</span>
+        <strong id="headerTicketCount">1</strong>
+      </div>
+      <button type="button" class="icon-btn" id="soundToggleBtn" aria-pressed="true" title="効果音のON/OFF">
+        🔊 サウンド ON
+      </button>
+      <button type="button" class="icon-btn danger-subtle" id="resetBtn" title="セーブデータを初期化">
+        ↺ リセット
+      </button>
+    </div>
+  </header>
+
+  <main class="game-layout">
+    <!-- 左パネル：スコア・コアボタン・チケット進捗・リアルタイムフィーバーバフ -->
+    <section class="panel left-panel" aria-label="量子コアとステータス">
+      <div class="score-card">
+        <span class="score-label">QUANTUM POINTS</span>
+        <div class="score-value-wrap">
+          <span id="pointsDisplay" class="score-value">0</span>
+          <span class="score-unit">pt</span>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-chip">
+            <span class="stat-label">クリック獲得</span>
+            <strong id="perClickDisplay" class="stat-num">+1</strong>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-label">自動生産 / 秒</span>
+            <strong id="perSecondDisplay" class="stat-num">+0.0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- コアクリックエリア -->
+      <div class="core-stage" id="coreStage">
+        <button type="button" class="quantum-core-btn" id="coreBtn" aria-label="量子コアをクリックしてポイント獲得">
+          <span class="core-ring ring-outer"></span>
+          <span class="core-ring ring-mid"></span>
+          <span class="core-glow"></span>
+          <span class="core-body">
+            <span class="core-symbol">⚡</span>
+            <span class="core-caption">TAP CORE</span>
+          </span>
+        </button>
+        <div id="floatingTextLayer" class="floating-layer" aria-hidden="true"></div>
+      </div>
+
+      <!-- 50クリックごとの無料チケット進捗 -->
+      <div class="ticket-progress-card">
+        <div class="ticket-progress-header">
+          <span>🎟️ 無料チケット獲得チャージ</span>
+          <span id="ticketProgressLabel">0 / 50 クリック</span>
+        </div>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0" id="ticketProgressBarWrap">
+          <div class="progress-fill" id="ticketProgressFill"></div>
+        </div>
+        <p class="ticket-hint">コアを50回クリックするごとに無料抽選チケットを1枚獲得（総クリック: <strong id="totalClicksDisplay">0</strong>回）</p>
+      </div>
+
+      <!-- リアルタイム・フィーバーバフ表示 -->
+      <div class="buff-panel">
+        <div class="section-title-row">
+          <h2>⚡ フィーバーバフ</h2>
+          <span id="feverBadge" class="fever-status-badge">STANDBY</span>
+        </div>
+        <div id="activeBuffsList" class="buff-list">
+          <div class="buff-empty">現在発動中のバフはありません（量子ルーレットで獲得可能）</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右パネル：タブ切り替え（ショップ / 量子ルーレット） -->
+    <section class="panel right-panel" aria-label="ショップと量子ルーレット">
+      <div class="tabs-bar" role="tablist" aria-label="機能切り替えタブ">
+        <button
+          type="button"
+          class="tab-btn active"
+          role="tab"
+          aria-selected="true"
+          aria-controls="shopTabPanel"
+          id="shopTabBtn"
+          data-tab="shop"
+        >
+          🛒 ショップ
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          role="tab"
+          aria-selected="false"
+          aria-controls="rouletteTabPanel"
+          id="rouletteTabBtn"
+          data-tab="roulette"
+        >
+          🎰 量子ルーレット
+          <span class="tab-badge" id="rouletteTabBadge">1</span>
+        </button>
+      </div>
+
+      <!-- ショップパネル -->
+      <div id="shopTabPanel" class="tab-content active" role="tabpanel" aria-labelledby="shopTabBtn">
+        <div class="panel-intro">
+          <div>
+            <h2>量子オートメーション・ショップ</h2>
+            <p>ポイントを消費して、1秒ごとに自動でポイントを生み出す施設や強化モジュールを購入できます。</p>
+          </div>
+        </div>
+
+        <div id="shopItemsContainer" class="shop-list"></div>
+      </div>
+
+      <!-- 量子ルーレットパネル -->
+      <div id="rouletteTabPanel" class="tab-content" role="tabpanel" aria-labelledby="rouletteTabBtn" hidden>
+        <div class="roulette-header">
+          <div>
+            <h2>🎰 量子ルーレット（6種抽選）</h2>
+            <p>無料チケットまたはポイントを消費して、強力なフィーバーバフや大量ポイントを獲得しよう！</p>
+          </div>
+          <div class="roulette-tickets-box">
+            <span>所持無料チケット</span>
+            <strong id="rouletteTicketCount">🎟️ 1 枚</strong>
+          </div>
+        </div>
+
+        <div class="roulette-stage">
+          <div class="wheel-container">
+            <div class="wheel-pointer" id="wheelPointer" aria-hidden="true">▼</div>
+            <canvas id="rouletteCanvas" width="380" height="380" aria-label="6種類の景品が並ぶ量子ルーレット盤"></canvas>
+            <div class="wheel-center-cap" aria-hidden="true">⚛️</div>
+          </div>
+
+          <div class="roulette-controls">
+            <div id="rouletteResultBox" class="roulette-result-box" aria-live="polite">
+              <span class="result-placeholder">ルーレットを回して量子ボーナスを引き当てよう！</span>
+            </div>
+
+            <button type="button" id="spinBtn" class="spin-btn">
+              <span id="spinBtnLabel">🎟️ 無料チケットで回す（残り1枚）</span>
+            </button>
+            <p id="spinSubInfo" class="spin-sub-info">初期特典チケット保有中！チケット消費なしで1回抽選できます</p>
+          </div>
+        </div>
+
+        <div class="prizes-legend">
+          <h3>抽選ラインナップ（全6種）</h3>
+          <div id="prizesGrid" class="prizes-grid"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
